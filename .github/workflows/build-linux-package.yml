@@ -17,11 +17,6 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 配置 Perl 环境
-        uses: shogo82148/actions-setup-perl@v1
-        with:
-          perl-version: '5.x'
-
       - name: 安装构建依赖
         run: |
           sudo apt-get update
