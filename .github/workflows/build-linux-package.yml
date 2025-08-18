@@ -31,6 +31,12 @@ jobs:
       - name: 使用 pp 生成独立可执行文件
         run: |
           pp -I lib -o ora2pg_linux_amd64 -M Ora2Pg -M DBI -M warnings scripts/ora2pg
+          sync
+
+      - name: 测试可执行文件
+        run: |
+          chmod +x ora2pg_linux_amd64
+          ./ora2pg_linux_amd64 -h
 
       - name: 上传可执行文件作为构建产物
         uses: actions/upload-artifact@v4
