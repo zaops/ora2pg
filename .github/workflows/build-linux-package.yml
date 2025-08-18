@@ -25,11 +25,11 @@ jobs:
       - name: 安装构建依赖
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential perl-modules perl libpar-packer-perl
+          sudo apt-get install -y build-essential perl-modules perl libpar-packer-perl libdbi-perl
 
       - name: 使用 pp 生成独立可执行文件
         run: |
-          pp -I lib -o ora2pg_linux_amd64 -M Ora2Pg -M DBI -M DBD::Oracle -M warnings scripts/ora2pg
+          pp -I lib -o ora2pg_linux_amd64 -M Ora2Pg -M DBI -M warnings scripts/ora2pg
 
       - name: 上传可执行文件作为构建产物
         uses: actions/upload-artifact@v4
