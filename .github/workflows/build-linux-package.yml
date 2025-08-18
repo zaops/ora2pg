@@ -27,6 +27,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential perl-modules perl libpar-packer-perl libdbi-perl
 
+      - name: Check Perl 路径
+        run: |
+          which perl
+          perl -V
+          perl -MDBI -e 'print $INC{"DBI.pm"} . "\n";'
+
       - name: 使用 pp 生成独立可执行文件
         run: |
           pp -I lib -o ora2pg_linux_amd64 -M Ora2Pg -M DBI -M warnings scripts/ora2pg
