@@ -469,129 +469,118 @@ exit(0);
 sub usage
 {
 	print qq{
-Usage: ora2pg [-dhpqv --estimate_cost --dump_as_html] [--option value]
+用法: ora2pg [-dhpqv --estimate_cost --dump_as_html] [--option value]
 
-    -a | --allow str  : Comma separated list of objects to allow from export.
-                        Can be used with SHOW_COLUMN too.
-    -b | --basedir dir: Set the default output directory, where files
-                        resulting from exports will be stored.
-    -c | --conf file  : Set an alternate configuration file other than the
-                        default /etc/ora2pg/ora2pg.conf.
-    -C | --cdc_file file: File used to store/read SCN per table during export.
-                        default: TABLES_SCN.log in the current directory. This
-                        is the file written by the --cdc_ready option.
-    -d | --debug      : Enable verbose output.
-    -D | --data_type str : Allow custom type replacement at command line.
-    -e | --exclude str: Comma separated list of objects to exclude from export.
-                        Can be used with SHOW_COLUMN too.
-    -h | --help       : Print this short help.
-    -g | --grant_object type : Extract privilege from the given object type.
-                        See possible values with GRANT_OBJECT configuration.
-    -i | --input file : File containing Oracle PL/SQL code to convert with
-                        no Oracle database connection initiated.
-    -j | --jobs num   : Number of parallel process to send data to PostgreSQL.
-    -J | --copies num : Number of parallel connections to extract data from Oracle.
-    -l | --log file   : Set a log file. Default is stdout.
-    -L | --limit num  : Number of tuples extracted from Oracle and stored in
-                        memory before writing, default: 10000.
-    -m | --mysql      : Export a MySQL database instead of an Oracle schema.
-    -M | --mssql      : Export a Microsoft SQL Server database.
-    -n | --namespace schema : Set the Oracle schema to extract from.
-    -N | --pg_schema schema : Set PostgreSQL's search_path.
-    -o | --out file   : Set the path to the output file where SQL will
-                        be written. Default: output.sql in running directory.
-    -O | --options    : Used to override any configuration parameter, it can
-                        be used multiple time. Syntax: -O "PARAM_NAME=value"
-    -p | --plsql      : Enable PLSQL to PLPGSQL code conversion.
-    -P | --parallel num: Number of parallel tables to extract at the same time.
-    -q | --quiet      : Disable progress bar.
-    -r | --relative   : use \\ir instead of \\i in the psql scripts generated.
-    -s | --source DSN : Allow to set the Oracle DBI datasource.
-    -S | --scn    SCN : Allow to set the Oracle System Change Number (SCN) to
-                        use to export data. It will be used in the WHERE clause
-                        to get the data. It is used with action COPY or INSERT.
-    -t | --type export: Set the export type. It will override the one
-                        given in the configuration file (TYPE).
-    -T | --temp_dir dir: Set a distinct temporary directory when two
-                        or more ora2pg are run in parallel.
-    -u | --user name  : Set the Oracle database connection user.
-                        ORA2PG_USER environment variable can be used instead.
-    -v | --version    : Show Ora2Pg Version and exit.
-    -w | --password pwd : Set the password of the Oracle database user.
-                        ORA2PG_PASSWD environment variable can be used instead.
-    -W | --where clause : Set the WHERE clause to apply to the Oracle query to
-                        retrieve data. Can be used multiple time.
-    --forceowner      : Force ora2pg to set tables and sequences owner like in
-                  Oracle database. If the value is set to a username this one
-                  will be used as the objects owner. By default it's the user
-                  used to connect to the Pg database that will be the owner.
-    --nls_lang code: Set the Oracle NLS_LANG client encoding.
-    --client_encoding code: Set the PostgreSQL client encoding.
-    --view_as_table str: Comma separated list of views to export as table.
-    --estimate_cost   : Activate the migration cost evaluation with SHOW_REPORT
-    --cost_unit_value minutes: Number of minutes for a cost evaluation unit.
-                  default: 5 minutes, corresponds to a migration conducted by a
-                  PostgreSQL expert. Set it to 10 if this is your first migration.
-   --dump_as_html     : Force ora2pg to dump report in HTML, used only with
-                        SHOW_REPORT. Default is to dump report as simple text.
-   --dump_as_csv      : As above but force ora2pg to dump report in CSV.
-   --dump_as_json     : As above but force ora2pg to dump report in JSON.
-   --dump_as_sheet    : Report migration assessment with one CSV line per database.
-   --dump_as_file_prefix : Filename prefix, suffix will be added depending on
-                           dump_as_* selected switches, suffixes
-                           will be .html, .csv, .json.
-   --init_project name: Initialise a typical ora2pg project tree. Top directory
-                        will be created under project base dir.
-   --project_base dir : Define the base dir for ora2pg project trees. Default
-                        is current directory.
-   --print_header     : Used with --dump_as_sheet to print the CSV header
-                        especially for the first run of ora2pg.
-   --human_days_limit num : Set the number of human-days limit where the migration
-                        assessment level switch from B to C. Default is set to
-                        5 human-days.
-   --audit_user list  : Comma separated list of usernames to filter queries in
-                        the DBA_AUDIT_TRAIL table. Used only with SHOW_REPORT
-                        and QUERY export type.
-   --pg_dsn DSN       : Set the datasource to PostgreSQL for direct import.
-   --pg_user name     : Set the PostgreSQL user to use.
-   --pg_pwd password  : Set the PostgreSQL password to use.
-   --count_rows       : Force ora2pg to perform a real row count in TEST,
-                        TEST_COUNT and SHOW_TABLE actions.
-   --no_header        : Do not append Ora2Pg header to output file
-   --oracle_speed     : Use to know at which speed Oracle is able to send
-                        data. No data will be processed or written.
-   --ora2pg_speed     : Use to know at which speed Ora2Pg is able to send
-                        transformed data. Nothing will be written.
-   --blob_to_lo       : export BLOB as large objects, can only be used with
-                        action SHOW_COLUMN, TABLE and INSERT.
-   --cdc_ready        : use current SCN per table to export data and register
-                        them into a file named TABLES_SCN.log per default. It
-                        can be changed using -C | --cdc_file.
-   --lo_import        : use psql \\lo_import command to import BLOB as large
-                        object. Can be use to import data with COPY and import
-                        large object manually in a second pass. It is recquired
-                        for BLOB > 1GB. See documentation for more explanation.
-   --mview_as_table str: Comma separated list of materialized views to export
-                        as regular table.
-   --drop_if_exists   : Drop the object before creation if it exists.
-   --delete clause    : Set the DELETE clause to apply to the Oracle query to
-                        be applied before importing data. Can be used multiple
-			time.
-   --oracle_fdw_prefetch: Set the oracle_fdw prefetch value. Larger values
-                        generally result in faster data transfer at the cost
-                        of greater memory utilisation at the destination.
-    --no_start_scn    : Force Ora2Pg to not use a SCN to export data. By default
-    			the current SCN is used to export data from all tables.
-    --no_clean_comment: do not try to remove comments in source file before
-                        parsing. In some cases it could table a very long time.
+    -a | --allow str  : 允许导出的对象列表，用逗号分隔。
+                        也可与 SHOW_COLUMN 一起使用。
+    -b | --basedir dir: 设置默认输出目录，导出文件将存储在此处。
+    -c | --conf file  : 设置替代配置文件，而不是默认的
+                        /etc/ora2pg/ora2pg.conf。
+    -C | --cdc_file file: 导出期间用于存储/读取每个表 SCN 的文件。
+                        默认：当前目录中的 TABLES_SCN.log。这是
+                        --cdc_ready 选项写入的文件。
+    -d | --debug      : 启用详细输出。
+    -D | --data_type str : 允许在命令行进行自定义类型替换。
+    -e | --exclude str: 从导出中排除的对象列表，用逗号分隔。
+                        也可与 SHOW_COLUMN 一起使用。
+    -h | --help       : 打印此简短帮助。
+    -g | --grant_object type : 从给定对象类型提取权限。
+                        请参阅 GRANT_OBJECT 配置的可能值。
+    -i | --input file : 包含要转换的 Oracle PL/SQL 代码的文件，
+                        无需启动 Oracle 数据库连接。
+    -j | --jobs num   : 向 PostgreSQL 发送数据的并行进程数。
+    -J | --copies num : 从 Oracle 提取数据的并行连接数。
+    -l | --log file   : 设置日志文件。默认为 stdout。
+    -L | --limit num  : 从 Oracle 提取并存储在内存中的元组数，
+                        然后写入，默认：10000。
+    -m | --mysql      : 导出 MySQL 数据库而不是 Oracle 模式。
+    -M | --mssql      : 导出 Microsoft SQL Server 数据库。
+    -n | --namespace schema : 设置要提取的 Oracle 模式。
+    -N | --pg_schema schema : 设置 PostgreSQL 的 search_path。
+    -o | --out file   : 设置输出文件的路径，SQL 将写入其中。
+                        默认：运行目录中的 output.sql。
+    -O | --options    : 用于覆盖任何配置参数，可以多次使用。
+                        语法：-O "PARAM_NAME=value"
+    -p | --plsql      : 启用 PLSQL 到 PLPGSQL 代码转换。
+    -P | --parallel num: 同时提取的并行表数。
+    -q | --quiet      : 禁用进度条。
+    -r | --relative   : 在生成的 psql 脚本中使用 \\ir 而不是 \\i。
+    -s | --source DSN : 允许设置 Oracle DBI 数据源。
+    -S | --scn    SCN : 允许设置用于导出数据的 Oracle 系统更改号 (SCN)。
+                        它将在 WHERE 子句中使用以获取数据。
+                        与 COPY 或 INSERT 操作一起使用。
+    -t | --type export: 设置导出类型。它将覆盖配置文件中给定的类型 (TYPE)。
+    -T | --temp_dir dir: 当两个或更多 ora2pg 并行运行时，
+                        设置不同的临时目录。
+    -u | --user name  : 设置 Oracle 数据库连接用户。
+                        可以使用 ORA2PG_USER 环境变量代替。
+    -v | --version    : 显示 Ora2Pg 版本并退出。
+    -w | --password pwd : 设置 Oracle 数据库用户的密码。
+                        可以使用 ORA2PG_PASSWD 环境变量代替。
+    -W | --where clause : 设置应用于 Oracle 查询以检索数据的 WHERE 子句。
+                        可以多次使用。
+    --forceowner      : 强制 ora2pg 像在 Oracle 数据库中一样设置表和序列所有者。
+                  如果值设置为用户名，则将使用此用户名作为对象所有者。
+                  默认情况下，用于连接到 Pg 数据库的用户将是所有者。
+    --nls_lang code: 设置 Oracle NLS_LANG 客户端编码。
+    --client_encoding code: 设置 PostgreSQL 客户端编码。
+    --view_as_table str: 要作为表导出的视图列表，用逗号分隔。
+    --estimate_cost   : 使用 SHOW_REPORT 激活迁移成本评估
+    --cost_unit_value minutes: 成本评估单位的分钟数。
+                  默认：5 分钟，对应由 PostgreSQL 专家进行的迁移。
+                  如果这是您的第一次迁移，请设置为 10。
+   --dump_as_html     : 强制 ora2pg 以 HTML 格式转储报告，仅与
+                        SHOW_REPORT 一起使用。默认为简单文本格式转储报告。
+   --dump_as_csv      : 如上所述，但强制 ora2pg 以 CSV 格式转储报告。
+   --dump_as_json     : 如上所述，但强制 ora2pg 以 JSON 格式转储报告。
+   --dump_as_sheet    : 每个数据库一行 CSV 的迁移评估报告。
+   --dump_as_file_prefix : 文件名前缀，后缀将根据选择的 dump_as_* 开关添加，
+                           后缀将是 .html、.csv、.json。
+   --init_project name: 初始化典型的 ora2pg 项目树。顶级目录
+                        将在项目基础目录下创建。
+   --project_base dir : 定义 ora2pg 项目树的基础目录。默认为当前目录。
+   --print_header     : 与 --dump_as_sheet 一起使用以打印 CSV 标题，
+                        特别是在 ora2pg 的第一次运行时。
+   --human_days_limit num : 设置人天限制数，迁移评估级别从 B 切换到 C。
+                        默认设置为 5 人天。
+   --audit_user list  : 用逗号分隔的用户名列表，用于过滤 DBA_AUDIT_TRAIL 表中的查询。
+                        仅与 SHOW_REPORT 和 QUERY 导出类型一起使用。
+   --pg_dsn DSN       : 设置 PostgreSQL 的数据源以进行直接导入。
+   --pg_user name     : 设置要使用的 PostgreSQL 用户。
+   --pg_pwd password  : 设置要使用的 PostgreSQL 密码。
+   --count_rows       : 强制 ora2pg 在 TEST、TEST_COUNT 和 SHOW_TABLE 操作中
+                        执行真实的行计数。
+   --no_header        : 不向输出文件追加 Ora2Pg 标题
+   --oracle_speed     : 用于了解 Oracle 能够发送数据的速度。
+                        不会处理或写入任何数据。
+   --ora2pg_speed     : 用于了解 Ora2Pg 能够发送转换数据的速度。
+                        不会写入任何内容。
+   --blob_to_lo       : 将 BLOB 导出为大对象，只能与
+                        SHOW_COLUMN、TABLE 和 INSERT 操作一起使用。
+   --cdc_ready        : 使用当前 SCN 每个表导出数据并将其注册到
+                        默认名为 TABLES_SCN.log 的文件中。
+                        可以使用 -C | --cdc_file 更改。
+   --lo_import        : 使用 psql \\lo_import 命令将 BLOB 导入为大对象。
+                        可用于使用 COPY 导入数据并在第二次传递中手动导入大对象。
+                        对于 > 1GB 的 BLOB 是必需的。有关更多说明，请参阅文档。
+   --mview_as_table str: 要作为常规表导出的物化视图列表，用逗号分隔。
+   --drop_if_exists   : 如果对象存在，则在创建之前删除它。
+   --delete clause    : 设置要应用于 Oracle 查询的 DELETE 子句，
+                        在导入数据之前应用。可以多次使用。
+   --oracle_fdw_prefetch: 设置 oracle_fdw 预取值。较大的值
+                        通常会以目标处更大的内存利用率为代价
+                        实现更快的数据传输。
+    --no_start_scn    : 强制 Ora2Pg 不使用 SCN 导出数据。默认情况下，
+    			当前 SCN 用于从所有表导出数据。
+    --no_clean_comment: 在解析之前不要尝试删除源文件中的注释。
+                        在某些情况下，这可能需要很长时间。
 
-See full documentation at https://ora2pg.darold.net/ for more help or see
-manpage with 'man ora2pg'.
+请访问 https://ora2pg.darold.net/ 查看完整文档以获取更多帮助，
+或使用 'man ora2pg' 查看手册页。
 
-ora2pg will return 0 on success, 1 on error. It will return 2 when a child
-process has been interrupted and you've gotten the warning message:
+ora2pg 成功时返回 0，错误时返回 1。当子进程被中断并且您收到警告消息时返回 2：
     "WARNING: an error occurs during data export. Please check what's happen."
-Most of the time this is an OOM issue, first try reducing DATA_LIMIT value.
+大多数情况下这是 OOM 问题，首先尝试减少 DATA_LIMIT 值。
 
 };
 	exit 1;
