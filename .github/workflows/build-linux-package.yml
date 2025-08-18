@@ -1,0 +1,39 @@
+# Ora2Pg GitHub Actions：构建独立 Linux 可执行文件
+#
+# 当代码推送到 main/master 分支时，自动在 Ubuntu 环境下使用 PAR::Packer 打包生成 Ora2Pg 的独立 Linux amd64 可执行文件。
+
+name: 构建 Linux amd64 可执行文件
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 配置 Perl 环境
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: '5.x'
+
+      - name: 安装构建依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential perl-modules make cpanminus
+          sudo cpanm --notest PAR::Packer
+
+      - name: 使用 pp 生成独立可执行文件
+        run: |
+          pp -o ora2pg_linux_amd64 -M Ora2Pg -M DBI -M DBD::Oracle -M warnings scripts/ora2pg
+
+      - name: 上传可执行文件作为构建产物
+        uses: actions/upload-artifact@v3
+        with:
+          name: ora2pg-linux-amd64
+          path: ora2pg_linux_amd64

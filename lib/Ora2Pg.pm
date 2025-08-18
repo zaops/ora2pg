@@ -1,4 +1,8 @@
 package Ora2Pg;
+
+use utf8;
+use open ':std', ':encoding(UTF-8)';
+
 #------------------------------------------------------------------------------
 # Project  : Oracle to PostgreSQL database schema converter
 # Name     : Ora2Pg.pm
@@ -302,7 +306,7 @@ sub spawn
 	my $coderef = shift;
 
 	unless (@_ == 0 && $coderef && ref($coderef) eq 'CODE') {
-		print "usage: spawn CODEREF";
+		print "用法: spawn CODEREF";
 		exit 0;
 	}
 
@@ -423,7 +427,7 @@ sub export_schema
 	$dirprefix = "$self->{output_dir}/" if ($self->{output_dir});
 	unlink($dirprefix . 'temp_pass2_file.dat');
 	if ($self->{type} eq 'COPY' && !$self->{quiet}) {
-		print "\nSchema Export Complete\n\n";
+		print "\n模式导出完成\n\n";
 	}
 }
 
@@ -538,7 +542,7 @@ sub create_export_file
 		}
 		if ( $self->{compress} && (($self->{jobs} > 1) || ($self->{oracle_copies} > 1)) )
 		{
-			die "FATAL: you can't use compressed output with parallel dump\n";
+			die "致命错误：不能在并行转储时使用压缩输出\n";
 		}
 	}
 }
@@ -584,7 +588,7 @@ sub append_export_file
 		}
 		# If user request data compression
 		if ($self->{compress} && (($self->{jobs} > 1) || ($self->{oracle_copies} > 1))) {
-			die "FATAL: you can't use compressed output with parallel dump\n";
+			die "致命错误：不能在并行转储时使用压缩输出\n";
 		} else {
 			$filehdl = new IO::File;
 			$filehdl->open(">>$outfile") or $self->logit("FATAL: Can't open $outfile: $!\n", 0, 1);
@@ -617,7 +621,7 @@ sub append_lo_import_file
 	$filehdl->open(">>$outfile") or $self->logit("FATAL: Can't open $outfile: $!\n", 0, 1);
 	$filehdl->autoflush(1);
 	$self->set_binmode($filehdl);
-	flock($filehdl, 2) || die "FATAL: can't lock file $outfile\n";
+	flock($filehdl, 2) || die "致命错误：无法锁定文件 $outfile\n";
 	# At file creation append the verification of the required environment variable
 	if ($new)
 	{
@@ -1082,7 +1086,7 @@ sub _init
 	# Verify grant objects
 	if ($self->{type} eq 'GRANT' && $self->{grant_object})
 	{
-		die "FATAL: wrong object type in GRANT_OBJECTS directive.\n" if (!grep(/^$self->{grant_object}$/, 'USER', 'TABLE', 'VIEW', 'MATERIALIZED VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION', 'PACKAGE BODY', 'TYPE', 'SYNONYM', 'DIRECTORY'));
+		die "致命错误：GRANT_OBJECTS 指令中的对象类型错误。\n" if (!grep(/^$self->{grant_object}$/, 'USER', 'TABLE', 'VIEW', 'MATERIALIZED VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION', 'PACKAGE BODY', 'TYPE', 'SYNONYM', 'DIRECTORY'));
 	}
 
 	# Default boolean values
@@ -1195,7 +1199,7 @@ sub _init
 	# Should we replace zero date with something else than NULL
 	$self->{replace_zero_date} ||= '';
 	if ($self->{replace_zero_date} && (uc($self->{replace_zero_date}) ne '-INFINITY') && ($self->{replace_zero_date} !~ /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/)) {
-		die "FATAL: wrong format in REPLACE_ZERO_DATE value, should be YYYY-MM-DD HH:MM:SS or -INFINITY\n";
+		die "致命错误：REPLACE_ZERO_DATE 的值格式错误，应为 YYYY-MM-DD HH:MM:SS 或 -INFINITY\n";
 	}
 
 	# Defined default value for to_number translation
@@ -1544,7 +1548,7 @@ sub _init
 	$self->{ora2pg_speed} ||= 0;
 	if (($self->{oracle_speed} || $self->{ora2pg_speed}) && !grep(/^$self->{type}$/, 'COPY', 'INSERT', 'DATA')) {
 		# No output is only available for data export.
-		die "FATAL: --oracle_speed or --ora2pg_speed can only be use with data export.\n";
+		die "致命错误：--oracle_speed 或 --ora2pg_speed 只能用于数据导出。\n";
 	}
 	$self->{oracle_speed} = 1 if ($self->{ora2pg_speed});
 
@@ -2092,7 +2096,7 @@ sub _init
 		}
 		else
 		{
-			warn "type option must be (TABLE, VIEW, GRANT, SEQUENCE, SEQUENCE_VALUES, TRIGGER, PACKAGE, FUNCTION, PROCEDURE, PARTITION, TYPE, INSERT, COPY, TABLESPACE, SHOW_REPORT, SHOW_VERSION, SHOW_SCHEMA, SHOW_TABLE, SHOW_COLUMN, SHOW_ENCODING, FDW, MVIEW, QUERY, KETTLE, DBLINK, SYNONYM, DIRECTORY, LOAD, TEST, TEST_COUNT, TEST_VIEW, TEST_DATA), unknown $self->{type}\n";
+			warn "警告：类型选项必须是 (TABLE, VIEW, GRANT, SEQUENCE, SEQUENCE_VALUES, TRIGGER, PACKAGE, FUNCTION, PROCEDURE, PARTITION, TYPE, INSERT, COPY, TABLESPACE, SHOW_REPORT, SHOW_VERSION, SHOW_SCHEMA, SHOW_TABLE, SHOW_COLUMN, SHOW_ENCODING, FDW, MVIEW, QUERY, KETTLE, DBLINK, SYNONYM, DIRECTORY, LOAD, TEST, TEST_COUNT, TEST_VIEW, TEST_DATA)，未知的 $self->{type}\n";
 		}
 		$self->replace_tables(%{$self->{'replace_tables'}});
 		$self->replace_cols(%{$self->{'replace_cols'}});
@@ -2198,10 +2202,10 @@ sub set_binmode
                 use open ':utf8';
         } elsif ($self->{'binmode'} =~ /^:/) {
                 eval "use open '$self->{'binmode'}';";
-		die "FATAL: can't use open layer $self->{'binmode'}\n" if ($@);
+		die "致命错误：无法使用 open layer $self->{'binmode'}\n" if ($@);
 	} elsif ($self->{'binmode'} and $self->{'binmode'} ne 'raw' and $self->{'binmode'} ne 'locale') {
                 eval "use open ':encoding($self->{'binmode'})';";
-		die "FATAL: can't use open layer :encoding($self->{'binmode'})\n" if ($@);
+		die "致命错误：无法使用 open layer :encoding($self->{'binmode'})\n" if ($@);
         }
         # Set default PostgreSQL client encoding to UTF8
         if (!$self->{client_encoding} || ($self->{nls_lang} =~ /UTF8/ && !$self->{input_file}) ) {
@@ -2424,7 +2428,7 @@ sub start_function_json_config
 	}
 
 	my $tfh = $self->append_export_file($dirprefix . "$type.json", 1);
-	flock($tfh, 2) || die "FATAL: can't lock file ${dirprefix}$type.json\n";
+	flock($tfh, 2) || die "致命错误：无法锁定文件 ${dirprefix}$type.json\n";
 	$tfh->print(qq/{
   "oraConfig": {
     "dsn": "$self->{oracle_dsn}",
@@ -2459,7 +2463,7 @@ sub end_function_json_config
 	$dirprefix = "$self->{output_dir}/" if ($self->{output_dir});
 
 	my $tfh = $self->append_export_file($dirprefix . "$type.json", 1);
-	flock($tfh, 2) || die "FATAL: can't lock file ${dirprefix}$type.json\n";
+	flock($tfh, 2) || die "致命错误：无法锁定文件 ${dirprefix}$type.json\n";
 	# Add an empty json entry at end
 	$tfh->print(qq/    {
       "routine_type": "",
@@ -2877,13 +2881,13 @@ sub _tables
 			my $sth = $self->{dbh}->prepare("SELECT * FROM $realview WHERE 1=0");
 			if (!defined($sth))
 			{
-				warn "Can't prepare statement: $DBI::errstr";
+				warn "警告：无法准备语句: $DBI::errstr";
 				next;
 			}
 			$sth->execute;
 			if ($sth->err)
 			{
-				warn "Can't execute statement: $DBI::errstr";
+				warn "警告：无法执行语句: $DBI::errstr";
 				next;
 			}
 			$self->{tables}{$view}{field_name} = $sth->{NAME};
@@ -2942,13 +2946,13 @@ sub _tables
 			my $sth = $self->{dbh}->prepare("SELECT * FROM $realview WHERE 1=0");
 			if (!defined($sth))
 			{
-				warn "Can't prepare statement: $DBI::errstr";
+				warn "警告：无法准备语句: $DBI::errstr";
 				next;
 			}
 			$sth->execute;
 			if ($sth->err)
 			{
-				warn "Can't execute statement: $DBI::errstr";
+				warn "警告：无法执行语句: $DBI::errstr";
 				next;
 			}
 			$self->{tables}{$view}{field_name} = $sth->{NAME};
@@ -4919,7 +4923,7 @@ sub translate_function
 					if ($self->{jobs} > 1)
 					{
 						my $tfh = $self->append_export_file($dirprefix . 'temp_cost_file.dat', 1);
-						flock($tfh, 2) || die "FATAL: can't lock file temp_cost_file.dat\n";
+						flock($tfh, 2) || die "致命错误：无法锁定文件 temp_cost_file.dat\n";
 						$tfh->print("${fct}:$lsize:$lcost\n");
 						$self->close_export_file($tfh, 1);
 					}
@@ -5003,7 +5007,7 @@ sub save_filetoupdate_list
 	$dirprefix = "$self->{output_dir}/" if ($self->{output_dir});
 
 	my $tfh = $self->append_export_file($dirprefix . 'temp_pass2_file.dat', 1);
-	flock($tfh, 2) || die "FATAL: can't lock file temp_pass2_file.dat\n";
+	flock($tfh, 2) || die "致命错误：无法锁定文件 temp_pass2_file.dat\n";
 	$tfh->print("${pname}:${ftcname}:$file_name\n");
 	$self->close_export_file($tfh, 1);
 }
@@ -6677,7 +6681,7 @@ sub export_function
 		}
 		if ($self->{estimate_cost}) {
 			my $tfh = $self->read_export_file($dirprefix . 'temp_cost_file.dat');
-			flock($tfh, 2) || die "FATAL: can't lock file temp_cost_file.dat\n";
+			flock($tfh, 2) || die "致命错误：无法锁定文件 temp_cost_file.dat\n";
 			while (my $l = <$tfh>) {
 				chomp($l);
 				my ($fname, $fsize, $fcost) = split(/:/, $l);
@@ -6940,7 +6944,7 @@ sub export_procedure
 		if ($self->{estimate_cost})
 		{
 			my $tfh = $self->read_export_file($dirprefix . 'temp_cost_file.dat');
-			flock($tfh, 2) || die "FATAL: can't lock file temp_cost_file.dat\n";
+			flock($tfh, 2) || die "致命错误：无法锁定文件 temp_cost_file.dat\n";
 			if (defined $tfh)
 			{
 				while (my $l = <$tfh>)
@@ -10609,7 +10613,7 @@ sub read_input_file
 		while (<$fin>) { next if /^\/$/; $content .= $_; };
 		close($fin);
 	} else {
-		die "FATAL: can't read file $file, $!\n";
+		die "致命错误：无法读取文件 $file, $!\n";
 	}
 
 	$content =~ s/[\r\n]\/([\r\n]|$)/;$2/gs;
@@ -13733,7 +13737,7 @@ sub _count_source_rows
 	$dirprefix = "$self->{output_dir}/" if ($self->{output_dir});
 	my $fh = new IO::File;
 	$fh->open(">>${dirprefix}ora2pg_count_rows") or $self->logit("FATAL: can't write to ${dirprefix}ora2pg_count_rows, $!\n", 0, 1);
-	flock($fh, 2) || die "FATAL: can't lock file ${dirprefix}ora2pg_count_rows\n";
+	flock($fh, 2) || die "致命错误：无法锁定文件 ${dirprefix}ora2pg_count_rows\n";
 	$fh->print("$tbname:$size->[0]\n");
 	$fh->close;
 }
@@ -14816,7 +14820,7 @@ sub data_dump
 		$self->close_export_file($self->{fhout}) if (defined $self->{fhout} && !$self->{file_per_table} && !$self->{pg_dsn});
 		my $fh = $self->append_export_file($filename);
 		$self->set_binmode($fh) if (!$self->{compress});
-		flock($fh, 2) || die "FATAL: can't lock file $dirprefix$filename\n";
+		flock($fh, 2) || die "致命错误：无法锁定文件 $dirprefix$filename\n";
 		$fh->print($data);
 		$self->close_export_file($fh);
 		$self->logit("Written " . length($data) . " bytes to $dirprefix$filename\n", 1);
@@ -16375,7 +16379,7 @@ sub logit
 		$self->{fhlog}->close() if (defined $self->{fhlog});
 		$self->{dbh}->disconnect() if ($self->{dbh});
 		$self->{dbhdest}->disconnect() if ($self->{dbhdest});
-		die "Aborting export...\n";
+		die "正在中止导出...\n";
 	}
 }
 
@@ -18787,7 +18791,7 @@ sub show_test_errors
 {
 	my ($self, $lbl_type, @errors) = @_;
 
-	print "[ERRORS \U$lbl_type\E COUNT]\n";
+	print "[错误 \U$lbl_type\E 计数]\n";
 	if ($#errors >= 0)
 	{
 		foreach my $msg (@errors) {
@@ -18797,9 +18801,9 @@ sub show_test_errors
 	else
 	{
 		if ($self->{pg_dsn}) {
-			print "OK, Oracle and PostgreSQL have the same number of $lbl_type.\n";
+			print "完成, Oracle 和 PostgreSQL 的 $lbl_type 数量相同。\n";
 		} else {
-			print "No PostgreSQL connection, can not check number of $lbl_type.\n";
+			print "没有 PostgreSQL 连接，无法检查 $lbl_type 的数量。\n";
 		}
 	}
 }
@@ -22882,8 +22886,8 @@ ORDER BY attnum};
 	my $dirprefix = '';
 	$dirprefix = "$self->{output_dir}/" if ($self->{output_dir});
 	my $tfh = $self->append_export_file($dirprefix . 'data_validation.log', 1);
-	flock($tfh, 2) || die "FATAL: can't lock file data_validation.log\n";
-	$tfh->print("Data validation for table $tb: " . ((!$nerror) ? "OK\n" : "$nerror FAIL\n"));
+	flock($tfh, 2) || die "致命错误：无法锁定文件 data_validation.log\n";
+	$tfh->print("表格 $tb 的数据验证： " . ((!$nerror) ? "OK\n" : "$nerror FAIL\n"));
 	if ($error_msg)
 	{
 		$tfh->print("-----------------------------------------------------------------\n");

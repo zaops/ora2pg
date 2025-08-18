@@ -22,6 +22,9 @@
 #        along with this program. If not, see < http://www.gnu.org/licenses/ >.
 #
 #------------------------------------------------------------------------------
+use strict;
+use utf8;
+use open ':std', ':encoding(UTF-8)';
 use strict qw/vars/;
 
 use Ora2Pg;
@@ -216,24 +219,24 @@ if ($CREATE_PROJECT)
 {
 	if (!-d "$PROJECT_BASE")
 	{
-		print "FATAL: Project base directory does not exists: $PROJECT_BASE\n";
+		print "致命错误：项目基础目录不存在：$PROJECT_BASE\n";
 		&usage();
 	}
-	print STDERR "Creating project $CREATE_PROJECT.\n";
+	print STDERR "正在创建项目 $CREATE_PROJECT.\n";
 	&create_project($CREATE_PROJECT, $PROJECT_BASE);
 	exit 0;
 }
 
 if ($GRANT_OBJECT && !grep(/^$GRANT_OBJECT$/, @GRANT_OBJECTS_ARRAY))
 {
-	print "FATAL: invalid grant object type in -g option. See GRAND_OBJECT configuration directive.\n";
+	print "致命错误：-g 选项中的授权对象类型无效。请参阅 GRAND_OBJECT 配置指令。\n";
 	exit 1;
 }
 
 # Clean temporary files
 unless(opendir(DIR, "$TMP_DIR"))
 {
-	print "FATAL: can't opendir $TMP_DIR: $!\n";
+	print "致命错误：无法打开目录 $TMP_DIR: $!\n";
 	exit 1;
 }
 my @files = grep { $_ =~ /^tmp_ora2pg.*$/ } readdir(DIR);
@@ -242,7 +245,7 @@ foreach (@files)
 {
 	if (-e "$TMP_DIR/$_" and not unlink("$TMP_DIR/$_"))
 	{
-		print "FATAL: can not remove old temporary files $TMP_DIR/$_\n";
+		print "致命错误：无法删除旧的临时文件 $TMP_DIR/$_\n";
 		exit 1;
 	}
 }
@@ -251,7 +254,7 @@ foreach (@files)
 my $GOES_WITH_DEFAULT = 0;
 if ($FILE_CONF && ! -e $FILE_CONF)
 {
-	print "FATAL: can't find configuration file $FILE_CONF\n";
+	print "致命错误：找不到配置文件 $FILE_CONF\n";
 	&usage();
 }
 elsif (!$FILE_CONF && ! -e $CONFIG_FILE)
@@ -259,7 +262,7 @@ elsif (!$FILE_CONF && ! -e $CONFIG_FILE)
 	# At least we need configuration to connect to Oracle
 	if (!$DSN || (!$DBUSER && !$ENV{ORA2PG_USER}) || (!$DBPWD && !$ENV{ORA2PG_PASSWD}))
 	{
-		print "FATAL: can't find configuration file $CONFIG_FILE\n";
+		print "致命错误：找不到配置文件 $CONFIG_FILE\n";
 		&usage();
 	}
 	$CONFIG_FILE = '';
@@ -275,7 +278,7 @@ foreach my $t (split(/[,;\s\t]+/, $EXPORT_TYPE))
 {
 	if ($t && !grep(/^$t$/, @CAPABILITIES))
 	{
-		print "FATAL: Unknown export type: $t. Type supported: ", join(',', @CAPABILITIES), "\n";
+		print "致命错误：未知的导出类型: $t. 支持的类型: ", join(',', @CAPABILITIES), "\n";
 		&usage();
 	}
 }
@@ -283,7 +286,7 @@ foreach my $t (split(/[,;\s\t]+/, $EXPORT_TYPE))
 # Preserve barckward compatibility
 if ($TABLEONLY)
 {
-	warn "-x | --xtable is deprecated, use -a | --allow option instead.\n";
+	warn "警告：-x | --xtable 已弃用，请改用 -a | --allow 选项。\n";
 	if (!$ALLOW) {
 		$ALLOW = $TABLEONLY;
 	}
@@ -291,7 +294,7 @@ if ($TABLEONLY)
 
 if ($BLOB_TO_LO && !$CREATE_PROJECT && !grep(/^$EXPORT_TYPE$/, 'TABLE', 'INSERT', 'SHOW_COLUMN'))
 {
-	print "FATAL: option --blob_to_lo can only be used with the INSERT action.\n";
+	print "致命错误：--blob_to_lo 选项只能与 INSERT 操作一起使用。\n";
 	&usage();
 }
 
@@ -305,7 +308,7 @@ sub getout
 	# Cleaning temporary files
 	unless(opendir(DIR, "$TMP_DIR"))
 	{
-		print "FATAL: can't opendir $TMP_DIR: $!\n";
+		print "致命错误：无法打开目录 $TMP_DIR: $!\n";
 		exit 1;
 	}
 	my @files = grep { $_ =~ /^tmp_ora2pg.*$/ } readdir(DIR);
@@ -327,7 +330,7 @@ $AUDIT_USER =~ s/[;\s]+/,/g;
 if (-e $ALLOW)
 {
 	my $fh = new IO::File;
-	$fh->open($ALLOW) or die "FATAL: can't read file $ALLOW, $!\n";
+	$fh->open($ALLOW) or die "致命错误：无法读取文件 $ALLOW, $!\n";
 	$ALLOW = '';
 	while (my $l = <$fh>)
 	{
@@ -341,7 +344,7 @@ if (-e $ALLOW)
 if (-e $EXCLUDE)
 {
 	my $fh = new IO::File;
-	$fh->open($EXCLUDE) or die "FATAL: can't read file $EXCLUDE, $!\n";
+	$fh->open($EXCLUDE) or die "致命错误：无法读取文件 $EXCLUDE, $!\n";
 	$EXCLUDE = '';
 	while (my $l = <$fh>)
 	{
@@ -421,7 +424,7 @@ if (!$INPUT_FILE && !$GOES_WITH_DEFAULT)
 {
 	my $cf_file = $FILE_CONF || $CONFIG_FILE;
 	my $fh = new IO::File;
-	$fh->open($cf_file) or die "FATAL: can't read configuration file $cf_file, $!\n";
+	$fh->open($cf_file) or die "致命错误：无法读取配置文件 $cf_file, $!\n";
 	while (my $l = <$fh>)
 	{
 		chomp($l);
@@ -447,7 +450,7 @@ if ( ($EXPORT_TYPE !~ /^SHOW_/i) && !$INPUT_FILE ) {
 # Check if error occurs during data export
 unless(opendir(DIR, "$TMP_DIR"))
 {
-	print "FATAL: can't opendir $TMP_DIR: $!\n";
+	print "致命错误：无法打开目录 $TMP_DIR: $!\n";
 	exit 1;
 }
 @files = grep { $_ =~ /^tmp_ora2pg.*$/ } readdir(DIR);
@@ -609,19 +612,19 @@ sub create_project
 		$conf_file = $FILE_CONF;
 	}
 	if (!-f $conf_file || -z $conf_file) {
-		print "FATAL: file $conf_file does not exists.\n";
+		print "致命错误：文件 $conf_file 不存在。\n";
 		exit 1;
 	}
 	# Build entire project tree
 	my $base_path = $project_base . '/' . $create_project;
 	if (-e $base_path) {
-		print "FATAL: project directory exists $base_path\n";
+		print "致命错误：项目目录已存在 $base_path\n";
 		exit 1;
 	}
 	mkdir("$base_path");
 	print "$base_path/\n";
 	mkdir("$base_path/schema");
-	print "\tschema/\n";
+	print "\t模式/\n";
 
 	foreach my $exp (sort @SCHEMA_ARRAY ) {
 		my $tpath = lc($exp);
@@ -635,7 +638,7 @@ sub create_project
 		}
 	}
 	mkdir("$base_path/sources");
-	print "\tsources/\n";
+	print "\t来源/\n";
 	foreach my $exp (sort @SOURCES_ARRAY ) {
 		my $tpath = lc($exp);
 		$tpath =~ s/y$/ie/;
@@ -643,15 +646,15 @@ sub create_project
 		print "\t\t" . $tpath . "s/\n";
 	}
 	mkdir("$base_path/data");
-	print "\tdata/\n";
+	print "\t数据/\n";
 	mkdir("$base_path/config");
-	print "\tconfig/\n";
+	print "\t配置/\n";
 	mkdir("$base_path/reports");
-	print "\treports/\n";
+	print "\t报告/\n";
 	print "\n";
 
 	# Copy configuration file and transform it as a generic one
-	print "Generating generic configuration file\n";
+	print "正在生成通用配置文件\n";
 	if (open(IN, "$conf_file")) {
 		my @cf = <IN>;
 		close(IN);
@@ -661,20 +664,20 @@ sub create_project
 			&make_config_generic(\@cf);
 		}
 		unless(open(OUT, ">$base_path/config/ora2pg.conf")) {
-			print "FATAL: can't write to file $base_path/config/ora2pg.conf\n";
+			print "致命错误：无法写入文件 $base_path/config/ora2pg.conf\n";
 			exit 1;
 		}
 		print OUT @cf;
 		close(OUT);
 	} else {
-		print "FATAL: can not read file $conf_file, $!.\n";
+		print "致命错误：无法读取文件 $conf_file, $!.\n";
 		exit 1;
 	}
 
 	# Generate shell script to execute all export
-	print "Creating script export_schema.sh to automate all exports.\n";
+	print "正在创建脚本 export_schema.sh 以自动化所有导出。\n";
 	unless(open(OUT, "> $base_path/export_schema.sh")) {
-		print "FATAL: Can't write to file $base_path/export_schema.sh\n";
+		print "致命错误：无法写入文件 $base_path/export_schema.sh\n";
 		exit 1;
 	}
 	my $ablob_to_lo = '';
@@ -745,9 +748,9 @@ exit 0
 	# On Windows system generate a Powershell script to execute all export
 	if ($^O =~ /MSWin32|dos/i)
 	{
-		print "Creating Powershell script export_schema.ps1 to automate all exports.\n";
+		print "正在创建 Powershell 脚本 export_schema.ps1 以自动化所有导出。\n";
 		unless(open(OUT, "> $base_path/export_schema.ps1")) {
-			print "FATAL: Can't write to file $base_path/export_schema.ps1\n";
+			print "致命错误：无法写入文件 $base_path/export_schema.ps1\n";
 			exit 1;
 		}
 		print OUT qq{
@@ -808,10 +811,10 @@ exit 0;
 	close(OUT);
 
 	# Generate shell script to execute all import
-	print "Creating script import_all.sh to automate all imports.\n";
+	print "正在创建脚本 import_all.sh 以自动化所有导入。\n";
 	my $exportype = "EXPORT_TYPE=\"TYPE " . join(' ', grep( !/^TYPE$/, @SCHEMA_ARRAY)) . "\"\n";
 	unless(open(OUT, "> $base_path/import_all.sh")) {
-		print "FATAL: Can't write to file $base_path/import_all.sh\n";
+		print "致命错误：无法写入文件 $base_path/import_all.sh\n";
 		exit 1;
 	}
 
@@ -990,7 +993,7 @@ import_constraints () {
 				if [ $DEBUG -eq 0 ]; then
 					psql$DB_HOST$DB_PORT -U $DB_OWNER -d $DB_NAME -f $NAMESPACE/schema/tables/INDEXES_table.sql
 					if [ $? -ne 0 ]; then
-						die "can not import indexes."
+						die "无法导入索引。"
 					fi
 				fi
 			else
@@ -998,7 +1001,7 @@ import_constraints () {
 				if [ $DEBUG -eq 0 ]; then
 					ora2pg$IMPORT_JOBS -c config/ora2pg.conf -t LOAD -i $NAMESPACE/schema/tables/INDEXES_table.sql
 					if [ $? -ne 0 ]; then
-						die "can not import indexes."
+						die "无法导入索引。"
 					fi
 				fi
 			fi
@@ -1012,7 +1015,7 @@ import_constraints () {
 				if [ $DEBUG -eq 0 ]; then
 					psql$DB_HOST$DB_PORT -U $DB_OWNER -d $DB_NAME -f $NAMESPACE/schema/tables/CONSTRAINTS_table.sql
 					if [ $? -ne 0 ]; then
-						die "can not import constraints."
+						die "无法导入约束。"
 					fi
 				fi
 			else
@@ -1020,7 +1023,7 @@ import_constraints () {
 				if [ $DEBUG -eq 0 ]; then
 					ora2pg$IMPORT_JOBS -c config/ora2pg.conf -t LOAD -i $NAMESPACE/schema/tables/CONSTRAINTS_table.sql
 					if [ $? -ne 0 ]; then
-						die "can not import constraints."
+						die "无法导入约束。"
 					fi
 				fi
 			fi
@@ -1034,7 +1037,7 @@ import_constraints () {
 				if [ $DEBUG -eq 0 ]; then
 					psql$DB_HOST$DB_PORT -U $DB_OWNER -d $DB_NAME -f $NAMESPACE/schema/tables/FKEYS_table.sql
 					if [ $? -ne 0 ]; then
-						die "can not import foreign keys."
+						die "无法导入外键。"
 					fi
 				fi
 			else
@@ -1042,7 +1045,7 @@ import_constraints () {
 				if [ $DEBUG -eq 0 ]; then
 					ora2pg$IMPORT_JOBS -c config/ora2pg.conf -t LOAD -i $NAMESPACE/schema/tables/FKEYS_table.sql
 					if [ $? -ne 0 ]; then
-						die "can not import foreign keys."
+						die "无法导入外键。"
 					fi
 				fi
 			fi
@@ -1056,7 +1059,7 @@ import_constraints () {
 				if [ $DEBUG -eq 0 ]; then
 					psql$DB_HOST$DB_PORT -U $DB_OWNER -d $DB_NAME -f $NAMESPACE/schema/tables/FTS_INDEXES_table.sql
 					if [ $? -ne 0 ]; then
-						die "can not import FTS indexes."
+						die "无法导入 FTS 索引。"
 					fi
 				fi
 			else
@@ -1064,7 +1067,7 @@ import_constraints () {
 				if [ $DEBUG -eq 0 ]; then
 					ora2pg$IMPORT_JOBS -c config/ora2pg.conf -t LOAD -i $NAMESPACE/schema/tables/FTS_INDEXES_table.sql
 					if [ $? -ne 0 ]; then
-						die "can not import FTS indexes."
+						die "无法导入 FTS 索引。"
 					fi
 				fi
 			fi
