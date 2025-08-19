@@ -30,12 +30,11 @@ jobs:
               sed -i 's|mirrorlist=|#mirrorlist=|g; s|#baseurl=|baseurl=|g; s|http://mirror.centos.org|https://vault.centos.org|g' /etc/yum.repos.d/CentOS-Base.repo && \
               yum -y install epel-release && \
               yum -y install gcc make perl perl-core perl-DBI perl-PAR-Packer && \
-              pp -I lib -o ora2pg_linux_glibc217 -M Ora2Pg -M DBI scripts/ora2pg
+              pp -I lib -o ora2pg_linux_glibc217 -M Ora2Pg -M DBI scripts/ora2pg && chmod +x ora2pg_linux_glibc217
             "
 
       - name: 测试可执行文件 (宿主机)
         run: |
-          chmod +x ora2pg_linux_glibc217
           ./ora2pg_linux_glibc217 -h || true
 
       - name: 上传构建产物
