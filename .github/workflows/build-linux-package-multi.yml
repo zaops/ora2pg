@@ -14,24 +14,26 @@ jobs:
   # CentOS 7 - glibc 2.17
   # -----------------------------------------------------------------
   build_glibc217:
-    runs-on: ubuntu-latest  # 宿主 runner，真正编译在容器内
-    container:
-      image: centos:7       # glibc 2.17，Perl 5.16.3
+    runs-on: ubuntu-latest  # 宿主 runner；容器仅用于构建步骤
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 安装依赖
+      - name: 在 CentOS 7 容器中构建 (glibc 2.17)
         run: |
-          yum -y update
-          yum -y install epel-release
-          yum -y install gcc make perl perl-core perl-DBI perl-PAR-Packer
+          docker run --rm \
+            -v "$PWD":/work \
+            -w /work \
+            centos:7 \
+            bash -lc '
+              set -euo pipefail
+              yum -y update && \
+              yum -y install epel-release && \
+              yum -y install gcc make perl perl-core perl-DBI perl-PAR-Packer && \
+              pp -I lib -o ora2pg_linux_glibc217 -M Ora2Pg -M DBI scripts/ora2pg
+            '
 
-      - name: 构建可执行文件 (glibc 2.17)
-        run: |
-          pp -I lib -o ora2pg_linux_glibc217 -M Ora2Pg -M DBI scripts/ora2pg
-
-      - name: 测试可执行文件
+      - name: 测试可执行文件 (宿主机)
         run: |
           chmod +x ora2pg_linux_glibc217
           ./ora2pg_linux_glibc217 -h || true
@@ -47,22 +49,24 @@ jobs:
   # -----------------------------------------------------------------
   build_glibc228:
     runs-on: ubuntu-latest
-    container:
-      image: quay.io/centos/centos:stream8  # glibc 2.28，Perl 5.26+
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 安装依赖
+      - name: 在 Rocky Linux 8 容器中构建 (glibc 2.28)
         run: |
-          dnf -y update
-          dnf -y install gcc make perl perl-core perl-DBI perl-PAR-Packer
+          docker run --rm \
+            -v "$PWD":/work \
+            -w /work \
+            rockylinux:8 \
+            bash -lc '
+              set -euo pipefail
+              dnf -y update && \
+              dnf -y install gcc make perl perl-core perl-DBI perl-PAR-Packer && \
+              pp -I lib -o ora2pg_linux_glibc228 -M Ora2Pg -M DBI scripts/ora2pg
+            '
 
-      - name: 构建可执行文件 (glibc 2.28)
-        run: |
-          pp -I lib -o ora2pg_linux_glibc228 -M Ora2Pg -M DBI scripts/ora2pg
-
-      - name: 测试可执行文件
+      - name: 测试可执行文件 (宿主机)
         run: |
           chmod +x ora2pg_linux_glibc228
           ./ora2pg_linux_glibc228 -h || true
