@@ -27,8 +27,9 @@ jobs:
             centos:7 \
             bash -lc '
               set -euo pipefail
-              yum -y update && \
-              yum -y install epel-release && \
+              # 修复镜像源解析失败，使用 vault.centos.org
+              sed -i 's|mirrorlist=|#mirrorlist=|g; s|#baseurl=|baseurl=|g; s|http://mirror.centos.org|https://vault.centos.org|g' /etc/yum.repos.d/CentOS-Base.repo && 
+              yum -y install epel-release && 
               yum -y install gcc make perl perl-core perl-DBI perl-PAR-Packer && \
               pp -I lib -o ora2pg_linux_glibc217 -M Ora2Pg -M DBI scripts/ora2pg
             '
