@@ -1,9 +1,8 @@
 # Ora2Pg GitHub Actions：针对不同 glibc 版本构建独立 Linux 可执行文件
 #
-# 在 CentOS 7 (glibc 2.17, Perl 5.16.3) 与 CentOS Stream 8 (glibc 2.28) 容器中
 # 使用 PAR::Packer 打包生成静态二进制，确保在老旧与较新系统上均可运行。
 
-name: 构建多版本 Linux 可执行文件
+name: 构建 glibc 2.17 Linux 可执行文件
 
 on:
   push:
@@ -25,14 +24,14 @@ jobs:
             -v "$PWD":/work \
             -w /work \
             centos:7 \
-            bash -lc '
+            bash -lc "
               set -euo pipefail
               # 修复镜像源解析失败，使用 vault.centos.org
-              sed -i 's|mirrorlist=|#mirrorlist=|g; s|#baseurl=|baseurl=|g; s|http://mirror.centos.org|https://vault.centos.org|g' /etc/yum.repos.d/CentOS-Base.repo && 
-              yum -y install epel-release && 
+              sed -i 's|mirrorlist=|#mirrorlist=|g; s|#baseurl=|baseurl=|g; s|http://mirror.centos.org|https://vault.centos.org|g' /etc/yum.repos.d/CentOS-Base.repo && \
+              yum -y install epel-release && \
               yum -y install gcc make perl perl-core perl-DBI perl-PAR-Packer && \
               pp -I lib -o ora2pg_linux_glibc217 -M Ora2Pg -M DBI scripts/ora2pg
-            '
+            "
 
       - name: 测试可执行文件 (宿主机)
         run: |
@@ -44,36 +43,3 @@ jobs:
         with:
           name: ora2pg-linux-glibc2.17
           path: ora2pg_linux_glibc217
-
-  # -----------------------------------------------------------------
-  # CentOS Stream 8 - glibc 2.28
-  # -----------------------------------------------------------------
-  build_glibc228:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 检出代码
-        uses: actions/checkout@v4
-
-      - name: 在 Rocky Linux 8 容器中构建 (glibc 2.28)
-        run: |
-          docker run --rm \
-            -v "$PWD":/work \
-            -w /work \
-            rockylinux:8 \
-            bash -lc '
-              set -euo pipefail
-              dnf -y update && \
-              dnf -y install gcc make perl perl-core perl-DBI perl-PAR-Packer && \
-              pp -I lib -o ora2pg_linux_glibc228 -M Ora2Pg -M DBI scripts/ora2pg
-            '
-
-      - name: 测试可执行文件 (宿主机)
-        run: |
-          chmod +x ora2pg_linux_glibc228
-          ./ora2pg_linux_glibc228 -h || true
-
-      - name: 上传构建产物
-        uses: actions/upload-artifact@v4
-        with:
-          name: ora2pg-linux-glibc2.28
-          path: ora2pg_linux_glibc228
