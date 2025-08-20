@@ -219,24 +219,24 @@ if ($CREATE_PROJECT)
 {
 	if (!-d "$PROJECT_BASE")
 	{
-		print "致命错误：项目基础目录不存在：$PROJECT_BASE\n";
+		print "错误：项目基础目录不存在：$PROJECT_BASE\n";
 		&usage();
 	}
-	print STDERR "正在创建项目 $CREATE_PROJECT.\n";
+	print STDERR "创建项目 $CREATE_PROJECT\n";
 	&create_project($CREATE_PROJECT, $PROJECT_BASE);
 	exit 0;
 }
 
 if ($GRANT_OBJECT && !grep(/^$GRANT_OBJECT$/, @GRANT_OBJECTS_ARRAY))
 {
-	print "致命错误：-g 选项中的授权对象类型无效。请参阅 GRAND_OBJECT 配置指令。\n";
+	print "错误：-g 选项中的权限对象类型无效。请参考 GRANT_OBJECT 配置指令\n";
 	exit 1;
 }
 
 # Clean temporary files
 unless(opendir(DIR, "$TMP_DIR"))
 {
-	print "致命错误：无法打开目录 $TMP_DIR: $!\n";
+	print "错误：无法打开目录 $TMP_DIR: $!\n";
 	exit 1;
 }
 my @files = grep { $_ =~ /^tmp_ora2pg.*$/ } readdir(DIR);
@@ -245,7 +245,7 @@ foreach (@files)
 {
 	if (-e "$TMP_DIR/$_" and not unlink("$TMP_DIR/$_"))
 	{
-		print "致命错误：无法删除旧的临时文件 $TMP_DIR/$_\n";
+		print "错误：无法删除临时文件 $TMP_DIR/$_\n";
 		exit 1;
 	}
 }
@@ -254,7 +254,7 @@ foreach (@files)
 my $GOES_WITH_DEFAULT = 0;
 if ($FILE_CONF && ! -e $FILE_CONF)
 {
-	print "致命错误：找不到配置文件 $FILE_CONF\n";
+	print "错误：找不到配置文件 $FILE_CONF\n";
 	&usage();
 }
 elsif (!$FILE_CONF && ! -e $CONFIG_FILE)
@@ -262,7 +262,7 @@ elsif (!$FILE_CONF && ! -e $CONFIG_FILE)
 	# At least we need configuration to connect to Oracle
 	if (!$DSN || (!$DBUSER && !$ENV{ORA2PG_USER}) || (!$DBPWD && !$ENV{ORA2PG_PASSWD}))
 	{
-		print "致命错误：找不到配置文件 $CONFIG_FILE\n";
+		print "错误：找不到配置文件 $CONFIG_FILE\n";
 		&usage();
 	}
 	$CONFIG_FILE = '';
@@ -278,7 +278,7 @@ foreach my $t (split(/[,;\s\t]+/, $EXPORT_TYPE))
 {
 	if ($t && !grep(/^$t$/, @CAPABILITIES))
 	{
-		print "致命错误：未知的导出类型: $t. 支持的类型: ", join(',', @CAPABILITIES), "\n";
+		print "错误：未知的导出类型: $t. 支持的类型: ", join(',', @CAPABILITIES), "\n";
 		&usage();
 	}
 }
@@ -286,7 +286,7 @@ foreach my $t (split(/[,;\s\t]+/, $EXPORT_TYPE))
 # Preserve barckward compatibility
 if ($TABLEONLY)
 {
-	warn "警告：-x | --xtable 已弃用，请改用 -a | --allow 选项。\n";
+	warn "警告：-x | --xtable 已废弃，请使用 -a | --allow 选项\n";
 	if (!$ALLOW) {
 		$ALLOW = $TABLEONLY;
 	}
@@ -294,7 +294,7 @@ if ($TABLEONLY)
 
 if ($BLOB_TO_LO && !$CREATE_PROJECT && !grep(/^$EXPORT_TYPE$/, 'TABLE', 'INSERT', 'SHOW_COLUMN'))
 {
-	print "致命错误：--blob_to_lo 选项只能与 INSERT 操作一起使用。\n";
+	print "错误：--blob_to_lo 选项只能与 INSERT 操作一起使用\n";
 	&usage();
 }
 
@@ -485,7 +485,7 @@ sub usage
                         也可与 SHOW_COLUMN 一起使用。
     -h | --help       : 打印此简短帮助。
     -g | --grant_object type : 从给定对象类型提取权限。
-                        请参阅 GRANT_OBJECT 配置的可能值。
+                        请参考 GRANT_OBJECT 配置的可能值
     -i | --input file : 包含要转换的 Oracle PL/SQL 代码的文件，
                         无需启动 Oracle 数据库连接。
     -j | --jobs num   : 向 PostgreSQL 发送数据的并行进程数。
@@ -497,43 +497,42 @@ sub usage
     -M | --mssql      : 导出 Microsoft SQL Server 数据库。
     -n | --namespace schema : 设置要提取的 Oracle 模式。
     -N | --pg_schema schema : 设置 PostgreSQL 的 search_path。
-    -o | --out file   : 设置输出文件的路径，SQL 将写入其中。
-                        默认：运行目录中的 output.sql。
-    -O | --options    : 用于覆盖任何配置参数，可以多次使用。
+    -o | --out file   : 设置输出文件路径，SQL 将写入该文件
+                        默认：当前目录中的 output.sql
+    -O | --options    : 覆盖任何配置参数，可多次使用
                         语法：-O "PARAM_NAME=value"
-    -p | --plsql      : 启用 PLSQL 到 PLPGSQL 代码转换。
-    -P | --parallel num: 同时提取的并行表数。
-    -q | --quiet      : 禁用进度条。
-    -r | --relative   : 在生成的 psql 脚本中使用 \\ir 而不是 \\i。
-    -s | --source DSN : 允许设置 Oracle DBI 数据源。
-    -S | --scn    SCN : 允许设置用于导出数据的 Oracle 系统更改号 (SCN)。
-                        它将在 WHERE 子句中使用以获取数据。
-                        与 COPY 或 INSERT 操作一起使用。
-    -t | --type export: 设置导出类型。它将覆盖配置文件中给定的类型 (TYPE)。
-    -T | --temp_dir dir: 当两个或更多 ora2pg 并行运行时，
-                        设置不同的临时目录。
-    -u | --user name  : 设置 Oracle 数据库连接用户。
-                        可以使用 ORA2PG_USER 环境变量代替。
-    -v | --version    : 显示 Ora2Pg 版本并退出。
-    -w | --password pwd : 设置 Oracle 数据库用户的密码。
-                        可以使用 ORA2PG_PASSWD 环境变量代替。
-    -W | --where clause : 设置应用于 Oracle 查询以检索数据的 WHERE 子句。
-                        可以多次使用。
-    --forceowner      : 强制 ora2pg 像在 Oracle 数据库中一样设置表和序列所有者。
-                  如果值设置为用户名，则将使用此用户名作为对象所有者。
-                  默认情况下，用于连接到 Pg 数据库的用户将是所有者。
-    --nls_lang code: 设置 Oracle NLS_LANG 客户端编码。
-    --client_encoding code: 设置 PostgreSQL 客户端编码。
-    --view_as_table str: 要作为表导出的视图列表，用逗号分隔。
-    --estimate_cost   : 使用 SHOW_REPORT 激活迁移成本评估
-    --cost_unit_value minutes: 成本评估单位的分钟数。
-                  默认：5 分钟，对应由 PostgreSQL 专家进行的迁移。
-                  如果这是您的第一次迁移，请设置为 10。
-   --dump_as_html     : 强制 ora2pg 以 HTML 格式转储报告，仅与
-                        SHOW_REPORT 一起使用。默认为简单文本格式转储报告。
-   --dump_as_csv      : 如上所述，但强制 ora2pg 以 CSV 格式转储报告。
-   --dump_as_json     : 如上所述，但强制 ora2pg 以 JSON 格式转储报告。
-   --dump_as_sheet    : 每个数据库一行 CSV 的迁移评估报告。
+    -p | --plsql      : 启用 PL/SQL 到 PL/pgSQL 代码转换
+    -P | --parallel num: 同时提取的并行表数量
+    -q | --quiet      : 禁用进度条
+    -r | --relative   : 在生成的 psql 脚本中使用 \\ir 而不是 \\i
+    -s | --source DSN : 设置 Oracle DBI 数据源
+    -S | --scn    SCN : 设置用于导出数据的 Oracle 系统更改号 (SCN)
+                        将在 WHERE 子句中使用以获取数据
+                        与 COPY 或 INSERT 操作一起使用
+    -t | --type export: 设置导出类型，覆盖配置文件中的 TYPE 设置
+    -T | --temp_dir dir: 当多个 ora2pg 并行运行时设置不同的临时目录
+    -u | --user name  : 设置 Oracle 数据库连接用户
+                        可使用 ORA2PG_USER 环境变量代替
+    -v | --version    : 显示 Ora2Pg 版本并退出
+    -w | --password pwd : 设置 Oracle 数据库用户密码
+                        可使用 ORA2PG_PASSWD 环境变量代替
+    -W | --where clause : 设置应用于 Oracle 查询的 WHERE 子句以检索数据
+                        可多次使用
+    --forceowner      : 强制 ora2pg 设置表和序列所有者与 Oracle 数据库中相同
+                  如果值设为用户名，则使用该用户名作为对象所有者
+                  默认情况下，连接 PostgreSQL 数据库的用户将是所有者
+    --nls_lang code: 设置 Oracle NLS_LANG 客户端编码
+    --client_encoding code: 设置 PostgreSQL 客户端编码
+    --view_as_table str: 要作为表导出的视图列表，逗号分隔
+    --estimate_cost   : 与 SHOW_REPORT 一起使用激活迁移成本评估
+    --cost_unit_value minutes: 成本评估单位的分钟数
+                  默认：5 分钟，对应 PostgreSQL 专家进行的迁移
+                  如果是首次迁移，建议设置为 10
+   --dump_as_html     : 强制 ora2pg 以 HTML 格式输出报告，仅与
+                        SHOW_REPORT 一起使用。默认为纯文本格式
+   --dump_as_csv      : 同上，但强制 ora2pg 以 CSV 格式输出报告
+   --dump_as_json     : 同上，但强制 ora2pg 以 JSON 格式输出报告
+   --dump_as_sheet    : 每个数据库一行的 CSV 迁移评估报告
    --dump_as_file_prefix : 文件名前缀，后缀将根据选择的 dump_as_* 开关添加，
                            后缀将是 .html、.csv、.json。
    --init_project name: 初始化典型的 ora2pg 项目树。顶级目录
@@ -562,7 +561,7 @@ sub usage
                         可以使用 -C | --cdc_file 更改。
    --lo_import        : 使用 psql \\lo_import 命令将 BLOB 导入为大对象。
                         可用于使用 COPY 导入数据并在第二次传递中手动导入大对象。
-                        对于 > 1GB 的 BLOB 是必需的。有关更多说明，请参阅文档。
+                        对于 > 1GB 的 BLOB 是必需的。更多说明请参考文档
    --mview_as_table str: 要作为常规表导出的物化视图列表，用逗号分隔。
    --drop_if_exists   : 如果对象存在，则在创建之前删除它。
    --delete clause    : 设置要应用于 Oracle 查询的 DELETE 子句，
@@ -575,12 +574,12 @@ sub usage
     --no_clean_comment: 在解析之前不要尝试删除源文件中的注释。
                         在某些情况下，这可能需要很长时间。
 
-请访问 https://ora2pg.darold.net/ 查看完整文档以获取更多帮助，
-或使用 'man ora2pg' 查看手册页。
+请访问 https://ora2pg.darold.net/ 查看完整文档获取更多帮助，
+或使用 'man ora2pg' 查看手册页
 
-ora2pg 成功时返回 0，错误时返回 1。当子进程被中断并且您收到警告消息时返回 2：
+ora2pg 成功时返回 0，错误时返回 1。当子进程被中断并收到警告消息时返回 2：
     "WARNING: an error occurs during data export. Please check what's happen."
-大多数情况下这是 OOM 问题，首先尝试减少 DATA_LIMIT 值。
+大多数情况下这是内存不足问题，请尝试减少 DATA_LIMIT 值
 
 };
 	exit 1;
@@ -601,19 +600,19 @@ sub create_project
 		$conf_file = $FILE_CONF;
 	}
 	if (!-f $conf_file || -z $conf_file) {
-		print "致命错误：文件 $conf_file 不存在。\n";
+		print "错误：文件 $conf_file 不存在\n";
 		exit 1;
 	}
 	# Build entire project tree
 	my $base_path = $project_base . '/' . $create_project;
 	if (-e $base_path) {
-		print "致命错误：项目目录已存在 $base_path\n";
+		print "错误：项目目录已存在 $base_path\n";
 		exit 1;
 	}
 	mkdir("$base_path");
 	print "$base_path/\n";
 	mkdir("$base_path/schema");
-	print "\t模式/\n";
+	print "\tschema/\n";
 
 	foreach my $exp (sort @SCHEMA_ARRAY ) {
 		my $tpath = lc($exp);
@@ -627,7 +626,7 @@ sub create_project
 		}
 	}
 	mkdir("$base_path/sources");
-	print "\t来源/\n";
+	print "\tsources/\n";
 	foreach my $exp (sort @SOURCES_ARRAY ) {
 		my $tpath = lc($exp);
 		$tpath =~ s/y$/ie/;
@@ -635,15 +634,15 @@ sub create_project
 		print "\t\t" . $tpath . "s/\n";
 	}
 	mkdir("$base_path/data");
-	print "\t数据/\n";
+	print "\tdata/\n";
 	mkdir("$base_path/config");
-	print "\t配置/\n";
+	print "\tconfig/\n";
 	mkdir("$base_path/reports");
-	print "\t报告/\n";
+	print "\treports/\n";
 	print "\n";
 
 	# Copy configuration file and transform it as a generic one
-	print "正在生成通用配置文件\n";
+	print "生成通用配置文件\n";
 	if (open(IN, "$conf_file")) {
 		my @cf = <IN>;
 		close(IN);
@@ -653,20 +652,20 @@ sub create_project
 			&make_config_generic(\@cf);
 		}
 		unless(open(OUT, ">$base_path/config/ora2pg.conf")) {
-			print "致命错误：无法写入文件 $base_path/config/ora2pg.conf\n";
+			print "错误：无法写入文件 $base_path/config/ora2pg.conf\n";
 			exit 1;
 		}
 		print OUT @cf;
 		close(OUT);
 	} else {
-		print "致命错误：无法读取文件 $conf_file, $!.\n";
+		print "错误：无法读取文件 $conf_file, $!\n";
 		exit 1;
 	}
 
 	# Generate shell script to execute all export
-	print "正在创建脚本 export_schema.sh 以自动化所有导出。\n";
+	print "创建脚本 export_schema.sh 以自动化所有导出\n";
 	unless(open(OUT, "> $base_path/export_schema.sh")) {
-		print "致命错误：无法写入文件 $base_path/export_schema.sh\n";
+		print "错误：无法写入文件 $base_path/export_schema.sh\n";
 		exit 1;
 	}
 	my $ablob_to_lo = '';
@@ -737,9 +736,9 @@ exit 0
 	# On Windows system generate a Powershell script to execute all export
 	if ($^O =~ /MSWin32|dos/i)
 	{
-		print "正在创建 Powershell 脚本 export_schema.ps1 以自动化所有导出。\n";
+		print "创建 PowerShell 脚本 export_schema.ps1 以自动化所有导出\n";
 		unless(open(OUT, "> $base_path/export_schema.ps1")) {
-			print "致命错误：无法写入文件 $base_path/export_schema.ps1\n";
+			print "错误：无法写入文件 $base_path/export_schema.ps1\n";
 			exit 1;
 		}
 		print OUT qq{
@@ -800,10 +799,10 @@ exit 0;
 	close(OUT);
 
 	# Generate shell script to execute all import
-	print "正在创建脚本 import_all.sh 以自动化所有导入。\n";
+	print "创建脚本 import_all.sh 以自动化所有导入\n";
 	my $exportype = "EXPORT_TYPE=\"TYPE " . join(' ', grep( !/^TYPE$/, @SCHEMA_ARRAY)) . "\"\n";
 	unless(open(OUT, "> $base_path/import_all.sh")) {
-		print "致命错误：无法写入文件 $base_path/import_all.sh\n";
+		print "错误：无法写入文件 $base_path/import_all.sh\n";
 		exit 1;
 	}
 

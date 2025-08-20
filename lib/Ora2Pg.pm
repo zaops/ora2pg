@@ -306,7 +306,7 @@ sub spawn
 	my $coderef = shift;
 
 	unless (@_ == 0 && $coderef && ref($coderef) eq 'CODE') {
-		print "用法: spawn CODEREF";
+		print "用法：spawn CODEREF";
 		exit 0;
 	}
 
@@ -18791,7 +18791,7 @@ sub show_test_errors
 {
 	my ($self, $lbl_type, @errors) = @_;
 
-	print "[错误 \U$lbl_type\E 计数]\n";
+	print "[错误 \U$lbl_type\E 统计]\n";
 	if ($#errors >= 0)
 	{
 		foreach my $msg (@errors) {
@@ -18801,9 +18801,9 @@ sub show_test_errors
 	else
 	{
 		if ($self->{pg_dsn}) {
-			print "完成, Oracle 和 PostgreSQL 的 $lbl_type 数量相同。\n";
+			print "完成，Oracle 和 PostgreSQL 的 $lbl_type 数量相同\n";
 		} else {
-			print "没有 PostgreSQL 连接，无法检查 $lbl_type 的数量。\n";
+			print "没有 PostgreSQL 连接，无法检查 $lbl_type 的数量\n";
 		}
 	}
 }
@@ -22886,8 +22886,8 @@ ORDER BY attnum};
 	my $dirprefix = '';
 	$dirprefix = "$self->{output_dir}/" if ($self->{output_dir});
 	my $tfh = $self->append_export_file($dirprefix . 'data_validation.log', 1);
-	flock($tfh, 2) || die "致命错误：无法锁定文件 data_validation.log\n";
-	$tfh->print("表格 $tb 的数据验证： " . ((!$nerror) ? "OK\n" : "$nerror FAIL\n"));
+	flock($tfh, 2) || die "错误：无法锁定文件 data_validation.log\n";
+	$tfh->print("表 $tb 数据验证：" . ((!$nerror) ? "OK\n" : "$nerror FAIL\n"));
 	if ($error_msg)
 	{
 		$tfh->print("-----------------------------------------------------------------\n");
